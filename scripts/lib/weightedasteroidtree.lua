@@ -24,6 +24,7 @@ function weightedAsteroidTree.getSubTreeForAsteroid(asteroid)
 end
 
 function weightedAsteroidTree.getResourceValueOfSubTreeForAsteroid(asteroid)
+    return sumResourcesOnTree(getSubTreeForAsteroid(asteroid))
 end
 
 function weightedAsteroidTree.isEmpty()
@@ -31,9 +32,13 @@ function weightedAsteroidTree.isEmpty()
 end
 
 function weightedAsteroidTree.buildTree()
+    head = popClosest(pointOfOrigin)
+    buildSubTree(head)
 end
 
 function weightedAsteroidTree.clear()
+    head = nil
+    weightedAsteroidTree = {}
 end
 
 local function findNodeWithDistanceFromHead(distanceFromHead, currentNode)
@@ -72,4 +77,63 @@ local function inEpsylonRangeArea(distance1, distance2)
     else
         return 1
     end
+end
+
+local function sumResourcesOnTree(tree)
+    if tree == nil or tree.asteroid == nil then
+        return 0
+    end
+    
+    local sum = tree.asteroid:getMineableResources()
+    
+    for subNode in tree.subNodes do
+        sum = sum + sumResourcesOnTree(subNode)
+    end
+    
+    return sum
+end
+
+local function popClosest(from)
+    local minDistance = math.huge
+    local minIndex = 1
+    local i = 1
+    for asteroid in rawData do
+        local currentDistance = distance2(from, asteroid.translationf)
+        if currentDistance < minDistance then
+            minDistance = currentDistance
+            minIndex = i
+        end
+        i = i + 1
+    end
+    
+    if rawData[minIndex] == nil then
+        return nil
+    end
+    
+    local newHead = {}
+    newHead.asteroid = rawData[minIndex]
+    newHead.subNodes = {}
+    
+    remove(minIndex)
+    
+    return newHead
+end
+
+local function buildSubTree(headNode)
+    if headNode == nil then
+        return nil
+    end
+    
+    headNode.subNodes[1] = popClosest(headNode.asteroid.translationf)
+    headNode.subNodes[2] = popClosest(headNode.asteroid.translationf)
+    
+    buildSubTree(headNode.subNodes[1])
+    buildSubTree(headNode.subNodes[2])
+end
+
+local function remove(index)
+    for i = index, rawDataCount - 1 do
+        rawData[i] = rawData[i + 1]
+    end
+    rawDataCount = rawDataCount - 1
 end
