@@ -135,5 +135,6 @@ local function remove(index)
     for i = index, rawDataCount - 1 do
         rawData[i] = rawData[i + 1]
     end
+	rawData[rawDataCount] = nil
     rawDataCount = rawDataCount - 1
 end

@@ -52,7 +52,7 @@ function findMinableAsteroids()
         end
     end
 
-    weightedAsteroidTree.buildGraph()
+    weightedAsteroidTree.buildTree()
 end
 
 function updateMining(timeStep)
