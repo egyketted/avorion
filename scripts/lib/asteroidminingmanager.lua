@@ -29,15 +29,20 @@ function asteroidMiningManager.assignFighterToAsteroid(fighter)
     end
     
     fighter.selectedObject = fighterToAsteroidMapping[fighter]
+    print("Assigned fighter" .. fighter.index .. " to asteroid" .. fighterToAsteroidMapping[fighter].index)
 end
 
-local function findSubNodeToMine(asteroidTree)
+function findSubNodeToMine(asteroidTree)
     local i = 1
     local subNodeResourceValues = {}
     local sumOfSubNodeResourceValues = 0
     
-    for subNode in asteroidTree.subNodes do
-        local currentSubnodeResourceValue = weightedAsteroidTree.getResourceValueOfSubTreeForAsteroid(subNode.asteroid)
+    --for subnode in asteroidTree.subNodes do
+    --    i = i +1
+    --end
+    
+    while asteroidTree.subNodes[i] do
+        local currentSubnodeResourceValue = weightedAsteroidTree.getResourceValueOfSubTreeForAsteroid(asteroidTree.subNodes[i].asteroid)
         subNodeResourceValues[i] = currentSubnodeResourceValue
         sumOfSubNodeResourceValues = sumOfSubNodeResourceValues + currentSubnodeResourceValue
         i = i + 1
@@ -59,3 +64,5 @@ local function findSubNodeToMine(asteroidTree)
     
     return asteroidTree.subNodes[i - 1].asteroid
 end
+
+return asteroidMiningManager
