@@ -21,7 +21,6 @@ function weightedAsteroidTree.getHead()
 end
 
 function weightedAsteroidTree.getSubTreeForAsteroid(asteroid)
-    --local distanceFromHead = distance2(head.asteroid.translationf, asteroid.translationf)
     print("Looking for asteroid" .. asteroid.index .. " in tree")
     return findNodeWithDistanceFromHead(asteroid, {head})
 end
@@ -58,12 +57,11 @@ function findNodeWithDistanceFromHead(asteroid, nodesToProcess)
     if asteroid.index == currentNode.asteroid.index then
         print("Found asteroid" .. asteroid.index)
         return currentNode;
-    else
-        print("Was looking for asteroid" .. asteroid.index .. " but found asteroid" .. currentNode.asteroid.index)
     end
     local j = 1
     while currentNode.subNodes[j] do
         appendAsLast(currentNode.subNodes[j], nodesToProcess)
+		j = j + 1
         --local currentNodeDistanceFromHead = distance2(head.asteroid.translationf, currentNode.subNodes[j].asteroid.translationf)
         --local isInEpsylonRangeArea = inEpsylonRangeArea(distanceFromHead, currentNodeDistanceFromHead)
         --if isInEpsylonRangeArea == 0 then
@@ -91,7 +89,7 @@ function sumResourcesOnTree(tree)
     
     local sum = tree.asteroid:getMineableResources()
     
-    for subNode in tree.subNodes do
+    for _, subNode in pairs(tree.subNodes) do
         sum = sum + sumResourcesOnTree(subNode)
     end
     
@@ -162,7 +160,6 @@ end
 function appendAsLast(toAppend, nodesToProcess)
     local i = 1
     while nodesToProcess[i] do
-        print("nodesToProcess[" .. i .. "] is not nil")
         i = i + 1
     end
     nodesToProcess[i] = toAppend

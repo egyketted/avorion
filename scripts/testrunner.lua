@@ -7,7 +7,7 @@ EntityType = {}
 EntityType.Asteroid = 0
 
 local asteroids = {}
-for i = 1, 100 do
+for i = 1, 10 do
     local asteroid = {}
     local asteroidResource = math.random(0, math.huge)
     function asteroid:getMineableResources()
