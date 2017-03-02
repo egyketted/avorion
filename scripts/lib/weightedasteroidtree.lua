@@ -20,9 +20,8 @@ function weightedAsteroidTree.getHead()
     return head
 end
 
-function weightedAsteroidTree.getSubTreeForAsteroid(asteroid)
-    print("Looking for asteroid" .. asteroid.index .. " in tree")
-    return findNodeWithDistanceFromHead(asteroid, {head})
+function weightedAsteroidTree.getSubTreeForAsteroid(node)
+    return findNodeWithDistanceFromHead(node.asteroid, {head})
 end
 
 function weightedAsteroidTree.getResourceValueOfSubTreeForAsteroid(asteroid)
@@ -49,6 +48,26 @@ function weightedAsteroidTree.clear()
     weightedAsteroidTree = {}
 end
 
+function weightedAsteroidTree.hasAsteroidsLeft()
+    return containsValidAsteroid(head)
+end
+
+function containsValidAsteroid(node)
+    if node.origAsteroid then
+        return true
+    end
+    if node.subNodes then 
+        if node.subNodes[1] then
+            if node.subNodes[2] then
+                return containsValidAsteroid(node.subNodes[1]) or containsValidAsteroid(node.subNodes[2])
+            else
+                return containsValidAsteroid(node.subNodes[1])
+            end
+        end
+    end
+    return false
+end
+
 function findNodeWithDistanceFromHead(asteroid, nodesToProcess)
     local currentNode = popFirst(nodesToProcess)
     if currentNode == nil then
@@ -61,12 +80,7 @@ function findNodeWithDistanceFromHead(asteroid, nodesToProcess)
     local j = 1
     while currentNode.subNodes[j] do
         appendAsLast(currentNode.subNodes[j], nodesToProcess)
-		j = j + 1
-        --local currentNodeDistanceFromHead = distance2(head.asteroid.translationf, currentNode.subNodes[j].asteroid.translationf)
-        --local isInEpsylonRangeArea = inEpsylonRangeArea(distanceFromHead, currentNodeDistanceFromHead)
-        --if isInEpsylonRangeArea == 0 then
-        --    return currentNode.subNodes[j]
-        --end
+        j = j + 1
     end
     
     return findNodeWithDistanceFromHead(asteroid, nodesToProcess)
@@ -87,7 +101,7 @@ function sumResourcesOnTree(tree)
         return 0
     end
     
-    local sum = tree.asteroid:getMineableResources()
+    local sum = tree.asteroid.mineableResources
     
     for _, subNode in pairs(tree.subNodes) do
         sum = sum + sumResourcesOnTree(subNode)
@@ -114,7 +128,13 @@ function popClosest(from)
     end
     
     local newHead = {}
-    newHead.asteroid = rawData[minIndex]
+    local origAsteroid = rawData[minIndex]
+    newHead.origAsteroid = origAsteroid
+    local asteroid = {}
+    asteroid.index = origAsteroid.index
+    asteroid.translationf = origAsteroid.translationf
+    asteroid.mineableResources = origAsteroid:getMineableResources()
+    newHead.asteroid = asteroid
     newHead.subNodes = {}
     
     remove(minIndex)
@@ -182,7 +202,7 @@ end
 
 function printNode(node)
     local asteroid = node.asteroid
-    return "[index=" .. asteroid.index .. ", position=" .. asteroid.translationf .. ", resources=" .. asteroid:getMineableResources() .. ", parentIndex=" .. node.parentIndex .. "]"
+    return "[index=" .. asteroid.index .. ", position=" .. asteroid.translationf .. ", resources=" .. asteroid.mineableResources .. ", parentIndex=" .. node.parentIndex .. "]"
 end
 
 return weightedAsteroidTree

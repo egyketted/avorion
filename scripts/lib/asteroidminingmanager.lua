@@ -14,22 +14,31 @@ function asteroidMiningManager.hasAsteroids()
 end
 
 function asteroidMiningManager.assignFighterToAsteroid(fighter)
+    if (not weightedAsteroidTree.hasAsteroidsLeft()) then
+        print("No more asteroids")
+        return
+    end
     if fighterToAsteroidMapping[fighter] then
-        fighterToAsteroidMapping[fighter] = findSubNodeToMine(weightedAsteroidTree
-              .getSubTreeForAsteroid(fighterToAsteroidMapping[fighter]))
-        asteroidToMiningFighterCountMapping[fighterToAsteroidMapping[fighter]] = asteroidToMiningFighterCountMapping[fighterToAsteroidMapping[fighter]] + 1
-    else
-        local asteroid = weightedAsteroidTree.getHead().asteroid
-        fighterToAsteroidMapping[fighter] = asteroid
-        if asteroidToMiningFighterCountMapping[asteroid] then
-            asteroidToMiningFighterCountMapping[asteroid] = asteroidToMiningFighterCountMapping[asteroid] + 1
+        fighterToAsteroidMapping[fighter].origAsteroid = nil--TODO remove this when run on real environment
+        local subNodeToMine = findSubNodeToMine(weightedAsteroidTree.getSubTreeForAsteroid(fighterToAsteroidMapping[fighter]))
+        if subNodeToMine then
+            fighterToAsteroidMapping[fighter] = subNodeToMine
+            asteroidToMiningFighterCountMapping[fighterToAsteroidMapping[fighter]] = asteroidToMiningFighterCountMapping[fighterToAsteroidMapping[fighter]] + 1
         else
-            asteroidToMiningFighterCountMapping[asteroid] = 1
+            return
+        end
+    else
+        local asteroidNode = weightedAsteroidTree.getHead()
+        fighterToAsteroidMapping[fighter] = asteroidNode
+        if asteroidToMiningFighterCountMapping[asteroidNode] then
+            asteroidToMiningFighterCountMapping[asteroidNode] = asteroidToMiningFighterCountMapping[asteroidNode] + 1
+        else
+            asteroidToMiningFighterCountMapping[asteroidNode] = 1
         end
     end
     
-    fighter.selectedObject = fighterToAsteroidMapping[fighter]
-    print("Assigned fighter" .. fighter.index .. " to asteroid" .. fighterToAsteroidMapping[fighter].index)
+    fighter.selectedObject = fighterToAsteroidMapping[fighter].origAsteroid
+    print("Assigned fighter" .. fighter.index .. " to asteroid" .. fighterToAsteroidMapping[fighter].asteroid.index)
 end
 
 function findSubNodeToMine(asteroidTree)
@@ -42,27 +51,27 @@ function findSubNodeToMine(asteroidTree)
     --end
     
     while asteroidTree.subNodes[i] do
-        local currentSubnodeResourceValue = weightedAsteroidTree.getResourceValueOfSubTreeForAsteroid(asteroidTree.subNodes[i].asteroid)
+        local currentSubnodeResourceValue = weightedAsteroidTree.getResourceValueOfSubTreeForAsteroid(asteroidTree.subNodes[i])
         subNodeResourceValues[i] = currentSubnodeResourceValue
         sumOfSubNodeResourceValues = sumOfSubNodeResourceValues + currentSubnodeResourceValue
         i = i + 1
     end
     
-    local totalFighterCountForSubTree = asteroidToMiningFighterCountMapping[asteroidTree.asteroid]
+    local totalFighterCountForSubTree = asteroidToMiningFighterCountMapping[asteroidTree]
     
     for j = 1, i - 1 do
         local fighterTotalResourceRatio = subNodeResourceValues[j] / sumOfSubNodeResourceValues
-        local totalFightersAvailable = asteroidToMiningFighterCountMapping[asteroidTree.asteroid]
+        local totalFightersAvailable = asteroidToMiningFighterCountMapping[asteroidTree]
         local fightersCountThatShouldMineThis = totalFightersAvailable * fighterTotalResourceRatio
-        if asteroidToMiningFighterCountMapping[asteroidTree.subNodes[j].asteroid] == nil then
-            asteroidToMiningFighterCountMapping[asteroidTree.subNodes[j].asteroid] = 0
+        if asteroidToMiningFighterCountMapping[asteroidTree.subNodes[j]] == nil then
+            asteroidToMiningFighterCountMapping[asteroidTree.subNodes[j]] = 0
         end
-        if asteroidToMiningFighterCountMapping[asteroidTree.subNodes[j].asteroid] + 1 <= fightersCountThatShouldMineThis then
-            return asteroidTree.subNodes[j].asteroid
+        if asteroidToMiningFighterCountMapping[asteroidTree.subNodes[j]] + 1 <= fightersCountThatShouldMineThis then
+            return asteroidTree.subNodes[j]
         end
     end
     
-    return asteroidTree.subNodes[i - 1].asteroid
+    return asteroidTree.subNodes[i - 1]
 end
 
 return asteroidMiningManager
