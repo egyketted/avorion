@@ -18,8 +18,9 @@ function asteroidMiningManager.assignFighterToAsteroid(fighter)
         print("No more asteroids")
         return
     end
+	weightedAsteroidTree.reconstructBelovCurrentLevel()
     if fighterToAsteroidMapping[fighter] then
-        fighterToAsteroidMapping[fighter].origAsteroid = nil--TODO remove this when run on real environment
+        --fighterToAsteroidMapping[fighter].origAsteroid = nil--TODO remove this when run on real environment
         local subNodeToMine = findSubNodeToMine(weightedAsteroidTree.getSubTreeForAsteroid(fighterToAsteroidMapping[fighter]))
         if subNodeToMine then
             fighterToAsteroidMapping[fighter] = subNodeToMine
@@ -36,9 +37,11 @@ function asteroidMiningManager.assignFighterToAsteroid(fighter)
             asteroidToMiningFighterCountMapping[asteroidNode] = 1
         end
     end
-    
-    fighter.selectedObject = fighterToAsteroidMapping[fighter].origAsteroid
-    print("Assigned fighter" .. fighter.index .. " to asteroid" .. fighterToAsteroidMapping[fighter].asteroid.index)
+    if fighterToAsteroidMapping[fighter].asteroid and fighterToAsteroidMapping[fighter].asteroid.index then
+		fighter.selectedObject = Entity(fighterToAsteroidMapping[fighter].asteroid.index)
+		print("Assigned fighter" .. fighter.index .. " to asteroid" .. fighterToAsteroidMapping[fighter].asteroid.index)
+	end
+	print("Could not find a target for fighter" .. fighter.index)
 end
 
 function findSubNodeToMine(asteroidTree)

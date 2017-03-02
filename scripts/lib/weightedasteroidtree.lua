@@ -6,6 +6,7 @@ local rawDataCount = 0
 local pointOfOrigin = nil
 
 local treeDepth = 1
+local currentDepth = 1
 
 function weightedAsteroidTree.setPointOfOrigin(newPointOfOrigin)
     pointOfOrigin = newPointOfOrigin
@@ -32,12 +33,31 @@ function weightedAsteroidTree.isEmpty()
     return head == nil or head.asteroid == nil
 end
 
+function weightedAsteroidTree.reconstructBelovCurrentLevel()
+	rawData = {}
+	local ship = Entity()
+    local sector = Sector()
+    
+    --weightedAsteroidTree.setPointOfOrigin(ship.translationf)
+
+    local asteroids = {sector:getEntitiesByType(EntityType.Asteroid)} -- TODO put back {} around sector:getEntitiesByType(EntityType.Asteroid) when not called from test runner
+    --Go after rich asteroids first
+    for _, a in pairs(asteroids) do
+        local resources = a:getMineableResources()
+        if resources ~= nil and resources > 0 then
+            weightedAsteroidTree.pushAsteroid(a)
+        end
+    end
+
+    buildTreeBelovCurrentDepth()
+end
+
 function weightedAsteroidTree.buildTree()
     print("finding head")
     head = popClosest(pointOfOrigin)
     head.level = 1
     head.parentIndex = 0
-    print("found head", printNode(head))
+    --print("found head", printNode(head))
     print("finding child nodes")
     buildSubTree({head})
     print("found child nodes")
@@ -94,6 +114,27 @@ function inEpsylonRangeArea(distance1, distance2)
     else
         return 1
     end
+end
+
+function buildTreeBelovCurrentDepth()
+	local localDepth = 1
+	local previusNodes = {head}
+	local buffer = {}
+	while localDepth <= currentDepth do
+		while previusNodes[1] do
+			local node = popFirst(previusNodes)
+			local i = 1
+			while node.subNodes and node.subNodes[i] do
+				appendAsLast(node.subNodes[i], buffer)
+				i = i + 1
+			end
+		end
+		localDepth = localDepth + 1
+		previusNodes = buffer
+		buffer = {}
+	end
+	currentDepth = currentDepth + 1
+	buildSubTree(previusNodes)
 end
 
 function sumResourcesOnTree(tree)
@@ -153,14 +194,14 @@ function buildSubTree(nodesToProcess)
         headNode.subNodes[1].level = headNode.level + 1
         headNode.subNodes[1].parentIndex = headNode.asteroid.index
         appendAsLast(headNode.subNodes[1], nodesToProcess)
-        print("Found child for depth:" .. headNode.subNodes[1].level, printNode(headNode.subNodes[1])) 
+        --print("Found child for depth:" .. headNode.subNodes[1].level, printNode(headNode.subNodes[1])) 
     end
     headNode.subNodes[2] = popClosest(headNode.asteroid.translationf)
     if headNode.subNodes[2] then
         headNode.subNodes[2].level = headNode.level + 1
         headNode.subNodes[2].parentIndex = headNode.asteroid.index
         appendAsLast(headNode.subNodes[2], nodesToProcess)
-        print("Found child for depth:" .. headNode.subNodes[1].level, printNode(headNode.subNodes[2]))
+        --print("Found child for depth:" .. headNode.subNodes[1].level, printNode(headNode.subNodes[2]))
     end
     
     buildSubTree(nodesToProcess)
