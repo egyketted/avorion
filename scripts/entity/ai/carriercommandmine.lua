@@ -13,31 +13,39 @@ end
 
 --Assign a fighter to the asteroid.
 function findAvailableFighter()
+    print("Updating fighter targets")
     local sector = Sector()
     local ship = Entity()
     local player = Player()
     
-    local asteroids = {sector:getEntitiesByType(EntityType.Asteroid)}
+    local asteroids = sector:getEntitiesByType(EntityType.Asteroid)
     if asteroids[1] == nil then
         asteroidToMiningFighterCount = {}
         return
     end
     
     avalibleFighter = nil
-    local fighters = {sector:getEntitiesByFaction(player.index)}
+    local fighters = sector:getEntitiesByFaction(player.index)
     for _, fighter in pairs(fighters) do
+        print("Fighters loop running")
         local launchedFighter = Entity(fighter.index)
         local minableAsteroid = nil
         if launchedFighter.isFighter
         and launchedFighter.isUnarmedTurret == 1 then
             if launchedFighter.selectedObject == nil
             or launchedFighter.selectedObject.index == nil then
+                print("Fighter is a miner without target")
                 local nearest = math.huge
                 --Go after rich asteroids first
                 for _, a in pairs(asteroids) do
+                    print("Asteroids loop running")
                     local resources = a:getMineableResources()
                     if resources ~= nil and resources > 0 then
+                        print("Asteroid has resources")
                         local dist = distance2(a.translationf, launchedFighter.translationf)
+                        if asteroidToMiningFighterCount[a] == nil then
+                            asteroidToMiningFighterCount[a] = 0
+                        end
                         if dist < nearest and resources / (asteroidToMiningFighterCount[a] + 1) > 300 then
                             nearest = dist
                             minableAsteroid = a
@@ -46,6 +54,7 @@ function findAvailableFighter()
                 end
                 if minableAsteroid then    
                     launchedFighter.selectedObject = minableAsteroid 
+                    print("Assigning fighter" .. launchedFighter.index .. " to asteroid" .. minableAsteroid.index)
                     if asteroidToMiningFighterCount[minableAsteroid] then
                         asteroidToMiningFighterCount[minableAsteroid] = asteroidToMiningFighterCount[minableAsteroid] + 1
                     else
@@ -105,6 +114,17 @@ function updateMining(timeStep)
             findAvailableFighter()
             asteroidToMiningFighter[asteroid] = nil
             asteroidToMiningFighterCount[asteroid] = nil
+            for ast, count in asteroidToMiningFighterCount do
+                local stilValid = false
+                for asteroid, fighters in asteroidToMiningFighter do
+                    if ast.index == asteroid.index then
+                        stilValid = true
+                    end
+                end
+                if not stilValid then
+                    asteroidToMiningFighterCount[ast] = nil
+                end
+            end
         end
         alreadyInitialized = true
     end
